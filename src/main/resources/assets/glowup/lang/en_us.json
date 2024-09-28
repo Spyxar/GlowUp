@@ -1,0 +1,8 @@
+{
+  "config.glowup.title": "GlowUp Config",
+  "config.glowup.categories.general": "General",
+  "config.glowup.option.glowcolor": "Glow Color",
+  "config.glowup.description.glowcolor": "Set the color of the glow (RGB)",
+  "config.glowup.option.items": "List of Items",
+  "config.glowup.description.items": "The items that will have an outline"
+}

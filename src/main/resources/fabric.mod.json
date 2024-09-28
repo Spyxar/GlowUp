@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "glowup",
+  "version": "${version}",
+  "name": "GlowUp",
+  "description": "A mod that highlights specific ground items",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/glowup/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.spyxar.glowup.GlowUpMod"
+    ],
+    "modmenu": [
+      "com.spyxar.glowup.config.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "glowup.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "${minecraft_version}"
+  },
+  "suggests": {
+    "modmenu": "*",
+    "cloth-config": "*"
+  }
+}
