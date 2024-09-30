@@ -4,8 +4,14 @@
   "version": "${version}",
   "name": "GlowUp",
   "description": "A mod that highlights specific ground items",
-  "authors": [],
-  "contact": {},
+  "authors": [
+    "Spyxar"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Spyxar",
+    "sources": "https://github.com/Spyxar/GlowUp",
+    "issues": "https://github.com/Spyxar/GlowUp/issues"
+  },
   "license": "MIT",
   "icon": "assets/glowup/icon.png",
   "environment": "client",
@@ -27,5 +33,12 @@
   "suggests": {
     "modmenu": "*",
     "cloth-config": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/EPFcHVjK8p"
+      }
+    }
   }
 }
