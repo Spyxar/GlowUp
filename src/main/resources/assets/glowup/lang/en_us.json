@@ -4,5 +4,13 @@
   "config.glowup.option.glowcolor": "Glow Color",
   "config.glowup.description.glowcolor": "Set the color of the glow (RGB)",
   "config.glowup.option.items": "List of Items",
-  "config.glowup.description.items": "The items that will have an outline"
+  "config.glowup.description.items": "The items that will have an outline",
+  "config.glowup.option.togglemessageonoverlay": "Toggle message on overlay",
+  "config.glowup.description.togglemessageonoverlay": "If enabled, the text that shows when using the toggle hotkey will appear above the hotbar instead of in chat",
+
+  "text.glowup.enableglow": "Added %s to glow list",
+  "text.glowup.disableglow": "Removed %s from glow list",
+
+  "key.categories.glowup.main": "GlowUp",
+  "key.glowup.toggleglow": "Toggle Held Item Glow"
 }

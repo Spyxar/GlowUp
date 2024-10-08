@@ -14,8 +14,9 @@ public final class GlowUpConfig
 {
     private transient File file;
 
-    public ArrayList<String> items = new ArrayList<>(List.of("diamond", "ancient_debris"));
     public int glowColor = 16777215;
+    public ArrayList<String> items = new ArrayList<>(List.of("diamond", "ancient_debris"));
+    public boolean toggleMessageOnOverlay = true;
 
     private GlowUpConfig() {}
 

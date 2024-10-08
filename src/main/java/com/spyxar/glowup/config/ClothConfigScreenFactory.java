@@ -22,6 +22,10 @@ public class ClothConfigScreenFactory
                 .setTooltip(Text.translatable("config.glowup.description.glowcolor"))
                 .setSaveConsumer(newValue -> GlowUpMod.config.glowColor = newValue)
                 .build());
+        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("config.glowup.option.togglemessageonoverlay"), GlowUpMod.config.toggleMessageOnOverlay)
+                .setDefaultValue(true)
+                .setTooltip(Text.translatable("config.glowup.description.togglemessageonoverlay"))
+                .setSaveConsumer(newValue -> GlowUpMod.config.toggleMessageOnOverlay = newValue)
                 .build());
         general.addEntry(entryBuilder.startStrList(Text.translatable("config.glowup.option.items"), GlowUpMod.config.items)
                 .setDefaultValue(Arrays.asList("diamond", "ancient_debris"))
