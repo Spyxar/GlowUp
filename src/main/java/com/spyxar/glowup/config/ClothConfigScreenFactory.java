@@ -29,7 +29,7 @@ public class ClothConfigScreenFactory
                 .setExpanded(true)
                 .setSaveConsumer(list -> {
                     ArrayList<String> items;
-                    items = new ArrayList<>(list.stream().map(String::toLowerCase).distinct().toList());
+                    items = new ArrayList<>(list.stream().map(String::toLowerCase).filter(s -> !s.trim().isEmpty()).distinct().toList());
                     GlowUpMod.config.items = items;
                 })
                 .build());
