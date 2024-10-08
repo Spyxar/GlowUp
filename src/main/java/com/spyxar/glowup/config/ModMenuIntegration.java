@@ -11,7 +11,7 @@ public class ModMenuIntegration implements ModMenuApi
     {
         if (FabricLoader.getInstance().isModLoaded("cloth-config2"))
         {
-            return ClothConfigScreenFactory::makeConfig;
+            return ClothConfigScreenFactory::buildConfigScreen;
         }
         else
         {

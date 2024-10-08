@@ -9,7 +9,7 @@ import java.util.*;
 
 public class ClothConfigScreenFactory
 {
-    public static Screen makeConfig(Screen parent)
+    public static Screen buildConfigScreen(Screen parent)
     {
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
@@ -19,12 +19,13 @@ public class ClothConfigScreenFactory
         ConfigCategory general = builder.getOrCreateCategory(Text.translatable("config.glowup.categories.general"));
         general.addEntry(entryBuilder.startColorField(Text.translatable("config.glowup.option.glowcolor"), GlowUpMod.config.glowColor)
                 .setDefaultValue(16777215)
-                        .setTooltip(Text.translatable("config.glowup.description.glowcolor"))
+                .setTooltip(Text.translatable("config.glowup.description.glowcolor"))
                 .setSaveConsumer(newValue -> GlowUpMod.config.glowColor = newValue)
+                .build());
                 .build());
         general.addEntry(entryBuilder.startStrList(Text.translatable("config.glowup.option.items"), GlowUpMod.config.items)
                 .setDefaultValue(Arrays.asList("diamond", "ancient_debris"))
-                        .setTooltip(Text.translatable("config.glowup.description.items"))
+                .setTooltip(Text.translatable("config.glowup.description.items"))
                 .setExpanded(true)
                 .setSaveConsumer(list -> {
                     ArrayList<String> items;
