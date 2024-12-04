@@ -1,6 +1,8 @@
 {
   "config.glowup.title": "GlowUp Config",
   "config.glowup.categories.general": "General",
+  "config.glowup.option.isenabled": "Enabled",
+  "config.glowup.description.isenabled": "Enable or disable all functionality",
   "config.glowup.option.glowcolor": "Glow Color",
   "config.glowup.description.glowcolor": "Set the color of the glow (RGB)",
   "config.glowup.option.items": "List of Items",
@@ -12,5 +14,6 @@
   "text.glowup.disableglow": "Removed %s from glow list",
 
   "key.categories.glowup.main": "GlowUp",
+  "key.glowup.toggle": "Toggle All Glow",
   "key.glowup.toggleglow": "Toggle Held Item Glow"
 }

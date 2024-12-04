@@ -1,5 +1,6 @@
 package com.spyxar.glowup.mixin;
 
+import com.spyxar.glowup.GlowUpMod;
 import com.spyxar.glowup.GlowUpUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
@@ -16,7 +17,7 @@ public class MinecraftClientMixin
     @Inject(method = "hasOutline", at = @At("HEAD"), cancellable = true)
     public void glowup$shouldItemHaveOutline(Entity entity, CallbackInfoReturnable<Boolean> cir)
     {
-        if (entity instanceof ItemEntity)
+        if (GlowUpMod.config.isEnabled && entity instanceof ItemEntity)
         {
             if (GlowUpUtils.shouldItemGlow(Registries.ITEM.getEntry(((ItemEntity) entity).getStack().getItem()).getIdAsString()))
             {

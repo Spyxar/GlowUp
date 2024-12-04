@@ -17,6 +17,11 @@ public class ClothConfigScreenFactory
                 .setSavingRunnable(GlowUpMod.config::saveConfig);
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
         ConfigCategory general = builder.getOrCreateCategory(Text.translatable("config.glowup.categories.general"));
+        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("config.glowup.option.isenabled"), GlowUpMod.config.isEnabled)
+                .setDefaultValue(true)
+                .setTooltip(Text.translatable("config.glowup.description.isenabled"))
+                .setSaveConsumer(newValue -> GlowUpMod.config.isEnabled = newValue)
+                .build());
         general.addEntry(entryBuilder.startColorField(Text.translatable("config.glowup.option.glowcolor"), GlowUpMod.config.glowColor)
                 .setDefaultValue(16777215)
                 .setTooltip(Text.translatable("config.glowup.description.glowcolor"))
