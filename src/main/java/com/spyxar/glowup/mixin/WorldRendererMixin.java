@@ -19,7 +19,7 @@ public class WorldRendererMixin
     @ModifyArgs(method = "renderEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/OutlineVertexConsumerProvider;setColor(IIII)V"))
     public void glowup$modifySetColorArgs(Args args, @Local Entity entity)
     {
-        if (entity instanceof ItemEntity)
+        if (GlowUpMod.config.isEnabled && entity instanceof ItemEntity)
         {
             if (GlowUpUtils.shouldItemGlow(Registries.ITEM.getEntry(((ItemEntity) entity).getStack().getItem()).getIdAsString()))
             {

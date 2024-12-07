@@ -34,6 +34,7 @@ public class GlowUpMod implements ClientModInitializer
             if (toggleKeyBinding.wasPressed())
             {
                 config.isEnabled = !config.isEnabled;
+                config.saveConfig();
             }
             if (toggleItemGlowKeyBinding.wasPressed())
             {
