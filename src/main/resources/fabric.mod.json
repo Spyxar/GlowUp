@@ -28,7 +28,8 @@
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",
-    "minecraft": "${minecraft_version}"
+    "minecraft": "~${minecraft_version}",
+    "java": ">=21"
   },
   "suggests": {
     "modmenu": "*",
