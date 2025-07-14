@@ -9,6 +9,10 @@
   "config.glowup.description.items": "The items that will have an outline",
   "config.glowup.option.togglemessageonoverlay": "Toggle message on overlay",
   "config.glowup.description.togglemessageonoverlay": "If enabled, the text that shows when using the toggle hotkey will appear above the hotbar instead of in chat",
+  "config.glowup.option.blacklistenabled": "Blacklist Enabled",
+  "config.glowup.description.blacklistenabled": "If this is enabled, all items will be glowing except the ones added to the blacklist",
+  "config.glowup.option.blacklisteditems": "Blacklisted Items",
+  "config.glowup.description.blacklisteditems": "The items that will not have an outline",
 
   "text.glowup.enableglow": "Added %s to glow list",
   "text.glowup.disableglow": "Removed %s from glow list",

@@ -18,6 +18,8 @@ public final class GlowUpConfig
     public int glowColor = 16777215;
     public ArrayList<String> items = new ArrayList<>(List.of("diamond", "ancient_debris"));
     public boolean toggleMessageOnOverlay = true;
+    public boolean blacklistEnabled = false;
+    public ArrayList<String> blacklistedItems = new ArrayList<>();
 
     private GlowUpConfig() {}
 

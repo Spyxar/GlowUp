@@ -42,6 +42,20 @@ public class ClothConfigScreenFactory
                     GlowUpMod.config.items = items;
                 })
                 .build());
+        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("config.glowup.option.blacklistenabled"), GlowUpMod.config.blacklistEnabled)
+                .setDefaultValue(false)
+                .setTooltip(Text.translatable("config.glowup.description.blacklistenabled"))
+                .setSaveConsumer(newValue -> GlowUpMod.config.blacklistEnabled = newValue)
+                .build());
+        general.addEntry(entryBuilder.startStrList(Text.translatable("config.glowup.option.blacklisteditems"), GlowUpMod.config.blacklistedItems)
+                .setTooltip(Text.translatable("config.glowup.description.blacklisteditems"))
+                .setExpanded(true)
+                .setSaveConsumer(list -> {
+                    ArrayList<String> blacklistedItems;
+                    blacklistedItems = new ArrayList<>(list.stream().map(String::toLowerCase).filter(s -> !s.trim().isEmpty()).distinct().toList());
+                    GlowUpMod.config.blacklistedItems = blacklistedItems;
+                })
+                .build());
         return builder.build();
     }
 }
