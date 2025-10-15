@@ -1,6 +1,19 @@
+
 plugins {
     id 'fabric-loom' version '1.11-SNAPSHOT'
     id 'maven-publish'
+}
+
+if (project.hasProperty('targetProps')) {
+    def propsFile = file("gradle-${project.property('targetProps')}.properties")
+    if (propsFile.exists()) {
+        println "Loading properties from ${propsFile}"
+        def props = new Properties()
+        propsFile.withInputStream { props.load(it) }
+        props.each { k, v -> project.ext."${k}" = v }
+    } else {
+        println "targetProps set but ${propsFile} not found"
+    }
 }
 
 version = "${project.mod_version}+${project.minecraft_version}"
@@ -61,6 +74,8 @@ java {
 }
 
 jar {
+    // produce distinct artifact filename per build (includes mod version + mc version)
+    archiveFileName = "${project.base.archivesName}-${project.version}.jar"
     inputs.property "archivesName", project.base.archivesName
 
     from("LICENSE") {
@@ -82,5 +97,26 @@ publishing {
         // Notice: This block does NOT have the same function as the block in the top level.
         // The repositories here will be used for publishing your artifact, not for
         // retrieving dependencies.
+    }
+     
+    // --- Keep remapped artifacts per-minecraft-version to avoid overwriting when running clean ---
+    // Copy the remapped jar to a per-version folder after remapJar runs.
+    tasks.register('copyRemappedJar', Copy) {
+        // remapJar is provided by Fabric Loom; run it first
+        dependsOn 'remapJar'
+        // remapJar produces an archiveFile provider
+        from { tasks.named('remapJar').get().archiveFile }
+        into { file("build/archives/${project.minecraft_version}") }
+        doLast {
+            println "Archived remapped jar to build/archives/${project.minecraft_version}"
+        }
+    }
+     
+    // Convenience task: remap then archive (use instead of running clean/remapJar when producing many versions)
+    tasks.register('remapAndArchive') {
+        dependsOn 'remapJar', 'copyRemappedJar'
+        doLast {
+            println "remapAndArchive completed for ${project.minecraft_version}"
+        }
     }
 }
