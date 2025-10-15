@@ -14,6 +14,7 @@ import net.minecraft.util.Hand;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
+import java.lang.reflect.*;
 
 public class GlowUpMod implements ClientModInitializer
 {
@@ -28,8 +29,12 @@ public class GlowUpMod implements ClientModInitializer
     {
         config = GlowUpConfig.loadConfig();
 
-        KeyBinding toggleKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glowup.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.categories.glowup.main"));
-        KeyBinding toggleItemGlowKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glowup.toggleglow", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.categories.glowup.main"));
+        KeyBinding toggleKeyBinding = KeyBindingHelper.registerKeyBinding(
+            constructKeyBindingCompat("key.glowup.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.categories.glowup.main")
+        );
+        KeyBinding toggleItemGlowKeyBinding = KeyBindingHelper.registerKeyBinding(
+            constructKeyBindingCompat("key.glowup.toggleglow", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.categories.glowup.main")
+        );
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (toggleKeyBinding.wasPressed())
             {
@@ -71,5 +76,46 @@ public class GlowUpMod implements ClientModInitializer
                 config.saveConfig();
             }
         });
+    }
+
+    private static net.minecraft.client.option.KeyBinding constructKeyBindingCompat(String id, net.minecraft.client.util.InputUtil.Type type, int keyCode, String categoryTranslationKey)
+    {
+        // Attempt new mappings where KeyBinding has an inner Category type with a static create(String) method.
+        try
+        {
+            Class<?> categoryClass = Class.forName("net.minecraft.client.option.KeyBinding$Category");
+            Method createMethod = null;
+            try
+            {
+                createMethod = categoryClass.getMethod("create", String.class);
+            }
+            catch (NoSuchMethodException ignored)
+            {
+                // fall through to fallback
+            }
+
+            if (createMethod != null)
+            {
+                Object categoryInstance = createMethod.invoke(null, categoryTranslationKey);
+                Constructor<?> ctor = KeyBinding.class.getConstructor(String.class, net.minecraft.client.util.InputUtil.Type.class, int.class, categoryClass);
+                Object kb = ctor.newInstance(id, type, Integer.valueOf(keyCode), categoryInstance);
+                return (KeyBinding) kb;
+            }
+        }
+        catch (ReflectiveOperationException ignored)
+        {
+            // fall through to fallback
+        }
+
+        // Fallback to older mappings where KeyBinding constructor takes a String category.
+        try
+        {
+            Constructor<net.minecraft.client.option.KeyBinding> ctor2 = KeyBinding.class.getConstructor(String.class, net.minecraft.client.util.InputUtil.Type.class, int.class, String.class);
+            return ctor2.newInstance(id, type, Integer.valueOf(keyCode), categoryTranslationKey);
+        }
+        catch (ReflectiveOperationException e)
+        {
+            throw new RuntimeException("Could not construct KeyBinding compatible with available mappings for id: " + id, e);
+        }
     }
 }
