@@ -16,8 +16,8 @@ import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 @Mixin(WorldRenderer.class)
 public class WorldRendererMixin
 {
-    // INT-args variant (older mappings)
-    @ModifyArgs(method = "renderEntities",
+    // INT-args variant (older mappings) — include common intermediary names as fallbacks for 1.21.9+
+    @ModifyArgs(method = {"renderEntities", "method_62207", "method_74752"},
                 at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/OutlineVertexConsumerProvider;setColor(IIII)V"),
                 require = 0)
     public void glowup$modifySetColorArgs_int(Args args, @Local Entity entity) {
@@ -32,8 +32,8 @@ public class WorldRendererMixin
         }
     }
 
-    // FLOAT-args variant (newer mappings)
-    @ModifyArgs(method = "renderEntities",
+    // FLOAT-args variant (newer mappings) — include common intermediary names as fallbacks for 1.21.9+
+    @ModifyArgs(method = {"renderEntities", "method_62207", "method_74752"},
                 at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/OutlineVertexConsumerProvider;setColor(FFFF)V"),
                 require = 0)
     public void glowup$modifySetColorArgs_float(Args args, @Local Entity entity) {
