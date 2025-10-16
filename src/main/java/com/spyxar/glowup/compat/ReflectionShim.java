@@ -156,14 +156,18 @@ public final class ReflectionShim {
 
         // Try some well-known permutations as a final effort (covers most known versions)
         List<TrySignature> fallbacks = new ArrayList<>();
-        // Always try the common String-based category signature
+        // Common signatures:
         fallbacks.add(new TrySignature(new Class<?>[]{String.class, InputUtil.Type.class, int.class, String.class}, new Object[]{id, type, Integer.valueOf(keyCode), categoryTranslationKey}));
-        // Only add signatures that reference the discovered category class
+        // If the runtime exposes a category class, try permutations that use it.
         if (categoryClass != null) {
             fallbacks.add(new TrySignature(new Class<?>[]{String.class, InputUtil.Type.class, int.class, categoryClass}, new Object[]{id, type, Integer.valueOf(keyCode), categoryInstance}));
             fallbacks.add(new TrySignature(new Class<?>[]{String.class, categoryClass, int.class, String.class}, new Object[]{id, categoryInstance, Integer.valueOf(keyCode), categoryTranslationKey}));
             fallbacks.add(new TrySignature(new Class<?>[]{String.class, InputUtil.Type.class, categoryClass, int.class}, new Object[]{id, type, categoryInstance, Integer.valueOf(keyCode)}));
+            // New: some mappings expose a 3-arg constructor (id, keyCode, category)
+            fallbacks.add(new TrySignature(new Class<?>[]{String.class, int.class, categoryClass}, new Object[]{id, Integer.valueOf(keyCode), categoryInstance}));
         }
+        // New: fallback for id, keyCode, categoryTranslationKey (no InputUtil.Type)
+        fallbacks.add(new TrySignature(new Class<?>[]{String.class, int.class, String.class}, new Object[]{id, Integer.valueOf(keyCode), categoryTranslationKey}));
 
         for (TrySignature ts : fallbacks) {
             try {
