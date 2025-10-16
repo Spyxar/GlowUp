@@ -1,0 +1,123 @@
+name: Test builds (per-jar)
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_build:
+        description: 'Run build-all.ps1 before testing (true/false)'
+        required: false
+        default: 'false'
+      server_jar_url:
+        description: 'Optional URL to download a Fabric/vanilla server jar for smoke tests'
+        required: false
+        default: ''
+  push:
+    branches: [ main, master ]
+
+jobs:
+  prepare:
+    name: Prepare jar matrix
+    runs-on: windows-latest
+    outputs:
+      matrix: ${{ steps.list.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: List jars in build-archive
+        id: list
+        shell: pwsh
+        run: |
+          $ws = $env:GITHUB_WORKSPACE
+          $archive = Join-Path $ws 'build-archive'
+          if (-not (Test-Path $archive)) {
+            Write-Error "build-archive not found at $archive"
+            exit 1
+          }
+          $files = Get-ChildItem -Path $archive -Recurse -Filter *.jar | ForEach-Object {
+            $rel = $_.FullName.Substring($ws.Length + 1) -replace '\\','/'
+            [PSCustomObject]@{
+              jar = $rel
+              name = $_.BaseName
+              dir = Split-Path $rel -Parent
+            }
+          }
+          $matrix = @{ include = $files } | ConvertTo-Json -Depth 10
+          Write-Host "Matrix JSON:"
+          Write-Host $matrix
+          ("matrix=" + $matrix) | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+  test_jar:
+    name: Test jar ${{ matrix.name }}
+    needs: prepare
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    env:
+      RUN_BUILD: ${{ github.event.inputs.run_build || 'false' }}
+      SERVER_JAR_URL: ${{ github.event.inputs.server_jar_url || '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle
+            .gradle
+            gradle/wrapper
+          key: gradle-cache-${{ runner.os }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-cache-${{ runner.os }}-
+
+      - name: Optionally run build-all.ps1
+        if: env.RUN_BUILD == 'true'
+        shell: pwsh
+        run: |
+          Write-Host "Running build-all.ps1 (this may take a while)"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File ./build-all.ps1
+
+      - name: Prepare server jar for runtime smoke test (optional)
+        id: prepare-server
+        shell: pwsh
+        run: |
+          if ($env:SERVER_JAR_URL -and $env:SERVER_JAR_URL -ne '') {
+            Write-Host "Downloading server jar from $env:SERVER_JAR_URL"
+            $out = Join-Path $env:GITHUB_WORKSPACE 'server.jar'
+            Invoke-WebRequest -Uri $env:SERVER_JAR_URL -OutFile $out -UseBasicParsing -ErrorAction Stop
+            Write-Host "Downloaded server.jar to $out"
+            Write-Output "server_path=server.jar" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          } else {
+            Write-Host "No SERVER_JAR_URL provided — runtime smoke test will be skipped by the script"
+            Write-Output "server_path=" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          }
+
+      - name: Run per-jar tests
+        id: run-tests
+        shell: pwsh
+        run: |
+          $jarRel = "${{ matrix.jar }}"
+          $jarPath = Join-Path $env:GITHUB_WORKSPACE $jarRel
+          $serverPath = ''
+          if (${{ steps.prepare-server.outputs.server_path }}) { $serverPath = Join-Path $env:GITHUB_WORKSPACE ${{ steps.prepare-server.outputs.server_path }} }
+          Write-Host "Testing jar: $jarPath"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/test-jar.ps1 -JarPath $jarPath -ServerJarPath $serverPath -OutputDir "test-results" -TimeoutSeconds 120
+        continue-on-error: false
+
+      - name: Upload test artifacts (per-run)
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.name }}
+          path: |
+            test-results/**
+
+      - name: Archive build artifact (optional)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-archive-${{ matrix.name }}
+          path: ${{ matrix.jar }}

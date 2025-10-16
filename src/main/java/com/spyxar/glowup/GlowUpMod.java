@@ -3,7 +3,6 @@ package com.spyxar.glowup;
 import com.spyxar.glowup.config.GlowUpConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.Item;
@@ -29,47 +28,30 @@ public class GlowUpMod implements ClientModInitializer
     {
         config = GlowUpConfig.loadConfig();
 
-        KeyBinding toggleKeyBinding = KeyBindingHelper.registerKeyBinding(
-            constructKeyBindingCompat("key.glowup.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.categories.glowup.main")
-        );
-        KeyBinding toggleItemGlowKeyBinding = KeyBindingHelper.registerKeyBinding(
-            constructKeyBindingCompat("key.glowup.toggleglow", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.categories.glowup.main")
-        );
+        KeyBinding toggleKeyBinding = safeRegisterKeyBinding(constructKeyBindingCompat("key.glowup.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.categories.glowup.main"));
+        KeyBinding toggleItemGlowKeyBinding = safeRegisterKeyBinding(constructKeyBindingCompat("key.glowup.toggleglow", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.categories.glowup.main"));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (toggleKeyBinding.wasPressed())
-            {
+            if (toggleKeyBinding.wasPressed()) {
                 config.isEnabled = !config.isEnabled;
                 config.saveConfig();
             }
-            if (toggleItemGlowKeyBinding.wasPressed())
-            {
-                if (client.player == null)
-                {
+            if (toggleItemGlowKeyBinding.wasPressed()) {
+                if (client.player == null) {
                     return;
                 }
-
                 Item item = client.player.getStackInHand(Hand.MAIN_HAND).getItem();
-                if (item == Items.AIR)
-                {
+                if (item == Items.AIR) {
                     return;
                 }
-
                 String itemId = Registries.ITEM.getEntry(item).getIdAsString();
-
                 boolean isOverlayMessage = config.toggleMessageOnOverlay;
-                if (config.items.contains(itemId))
-                {
+                if (config.items.contains(itemId)) {
                     config.items.remove(itemId);
                     client.player.sendMessage(Text.translatable("text.glowup.disableglow", itemId), isOverlayMessage);
-                }
-                else if (config.items.contains(itemId.replace("minecraft:", "")))
-                {
+                } else if (config.items.contains(itemId.replace("minecraft:", ""))) {
                     config.items.remove(itemId.replace("minecraft:", ""));
-
                     client.player.sendMessage(Text.translatable("text.glowup.disableglow", itemId), isOverlayMessage);
-                }
-                else
-                {
+                } else {
                     config.items.add(itemId.replace("minecraft:", ""));
                     client.player.sendMessage(Text.translatable("text.glowup.enableglow", itemId), isOverlayMessage);
                 }
@@ -116,6 +98,26 @@ public class GlowUpMod implements ClientModInitializer
         catch (ReflectiveOperationException e)
         {
             throw new RuntimeException("Could not construct KeyBinding compatible with available mappings for id: " + id, e);
+        }
+    }
+
+    /**
+     * Register the key binding if Fabric API's KeyBindingHelper is available.
+     * If it's not present, return the original KeyBinding so the mod remains loadable without that API.
+     */
+    private static KeyBinding safeRegisterKeyBinding(KeyBinding kb) {
+        try {
+            Class<?> helperClass = Class.forName("net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper");
+            Method registerMethod = helperClass.getMethod("registerKeyBinding", KeyBinding.class);
+            Object res = registerMethod.invoke(null, kb);
+            return (KeyBinding) res;
+        } catch (ClassNotFoundException e) {
+            // Fabric KeyBindingHelper not present — continue without registering via helper.
+            LOGGER.debug("Fabric KeyBindingHelper not found; skipping helper registration for key binding.");
+            return kb;
+        } catch (ReflectiveOperationException e) {
+            // Unexpected reflection error — propagate as runtime to make debugging visible
+            throw new RuntimeException("Error while attempting to register keybinding via KeyBindingHelper", e);
         }
     }
 }
