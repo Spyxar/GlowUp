@@ -44,4 +44,7 @@ How to open the PR (options):
 Notes / recommended merge policy:
 - Prefer a squash-and-merge with the PR description summarizing the per-version approach.
 - Verify at least one runtime test in-game (recommend 1.21.9) before merging.
-- Optionally follow-up by consolidating or documenting the reflection shim if a single artifact is desired.
+- Single-jar alternative: this PR also includes a runtime reflection shim at [`src/main/java/com/spyxar/glowup/compat/ReflectionShim.java`](src/main/java/com/spyxar/glowup/compat/ReflectionShim.java:1) which adapts to the KeyBinding constructor and optional Fabric KeyBindingHelper at runtime. To produce a single artifact supporting multiple 1.21.x micro-versions, build normally (do not pass targetProps) and remap once:
+  - Windows: `.\gradlew.bat clean remapJar`
+  - Other OS: `./gradlew clean remapJar`
+  The resulting jar in `build/libs` will include the reflection shim and should run across the 1.21.x targets; keep `build-all.ps1` available for producing per-version archived artifacts for testing if desired.
