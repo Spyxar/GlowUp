@@ -21,6 +21,7 @@ public final class ReflectionShim {
     private ReflectionShim() {}
 
     public static KeyBinding constructKeyBindingCompat(String id, InputUtil.Type type, int keyCode, String categoryTranslationKey) {
+        GlowUpMod.LOGGER.info("ReflectionShim: constructing KeyBinding for id='{}', keyCode={}, category='{}' (INFO - visible in launcher logs)", id, keyCode, categoryTranslationKey);
         GlowUpMod.LOGGER.debug("ReflectionShim: constructing KeyBinding for id='{}', keyCode={}, category='{}'", id, keyCode, categoryTranslationKey);
 
         // First: try to find a Category inner class and any factory methods for it.
@@ -83,9 +84,22 @@ public final class ReflectionShim {
         // Collect candidate constructors and attempt to match parameters heuristically.
         List<Constructor<?>> ctors = new ArrayList<>();
         try {
-            ctors.addAll(Arrays.asList(KeyBinding.class.getConstructors()));
+            // Use getDeclaredConstructors to include non-public constructors which some mappings expose.
+            ctors.addAll(Arrays.asList(KeyBinding.class.getDeclaredConstructors()));
+            // Emit the discovered constructor signatures to aid debugging at runtime.
+            for (Constructor<?> c : ctors) {
+                Class<?>[] pts = c.getParameterTypes();
+                StringBuilder sb = new StringBuilder();
+                sb.append('[');
+                for (int i = 0; i < pts.length; i++) {
+                    if (i > 0) sb.append(", ");
+                    sb.append(pts[i].getName());
+                }
+                sb.append(']');
+                GlowUpMod.LOGGER.info("ReflectionShim: discovered KeyBinding constructor: {}", sb.toString());
+                GlowUpMod.LOGGER.debug("ReflectionShim: discovered KeyBinding constructor: {}", sb.toString());
+            }
         } catch (SecurityException se) {
-            // Should not normally happen; fall back to the widely-used signatures below
             GlowUpMod.LOGGER.debug("ReflectionShim: could not list KeyBinding constructors: {}", se.toString());
         }
 
@@ -141,12 +155,15 @@ public final class ReflectionShim {
         }
 
         // Try some well-known permutations as a final effort (covers most known versions)
-        List<TrySignature> fallbacks = Arrays.asList(
-            new TrySignature(new Class<?>[]{String.class, InputUtil.Type.class, int.class, String.class}, new Object[]{id, type, Integer.valueOf(keyCode), categoryTranslationKey}),
-            new TrySignature(new Class<?>[]{String.class, InputUtil.Type.class, int.class, categoryClass}, new Object[]{id, type, Integer.valueOf(keyCode), categoryInstance}),
-            new TrySignature(new Class<?>[]{String.class, categoryClass, int.class, String.class}, new Object[]{id, categoryInstance, Integer.valueOf(keyCode), categoryTranslationKey}),
-            new TrySignature(new Class<?>[]{String.class, InputUtil.Type.class, categoryClass, int.class}, new Object[]{id, type, categoryInstance, Integer.valueOf(keyCode)})
-        );
+        List<TrySignature> fallbacks = new ArrayList<>();
+        // Always try the common String-based category signature
+        fallbacks.add(new TrySignature(new Class<?>[]{String.class, InputUtil.Type.class, int.class, String.class}, new Object[]{id, type, Integer.valueOf(keyCode), categoryTranslationKey}));
+        // Only add signatures that reference the discovered category class
+        if (categoryClass != null) {
+            fallbacks.add(new TrySignature(new Class<?>[]{String.class, InputUtil.Type.class, int.class, categoryClass}, new Object[]{id, type, Integer.valueOf(keyCode), categoryInstance}));
+            fallbacks.add(new TrySignature(new Class<?>[]{String.class, categoryClass, int.class, String.class}, new Object[]{id, categoryInstance, Integer.valueOf(keyCode), categoryTranslationKey}));
+            fallbacks.add(new TrySignature(new Class<?>[]{String.class, InputUtil.Type.class, categoryClass, int.class}, new Object[]{id, type, categoryInstance, Integer.valueOf(keyCode)}));
+        }
 
         for (TrySignature ts : fallbacks) {
             try {
