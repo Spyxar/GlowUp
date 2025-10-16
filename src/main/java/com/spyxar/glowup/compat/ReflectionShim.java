@@ -30,52 +30,73 @@ public final class ReflectionShim {
         Object categoryInstance = null;
 
         try {
-            categoryClass = Class.forName("net.minecraft.client.option.KeyBinding$Category");
-            GlowUpMod.LOGGER.debug("ReflectionShim: found category class: {}", categoryClass.getName());
-
-            // Try create(String) first (older 1.21.9+ style might offer create(Identifier) too)
+            // Try the named inner type first (deobf mappings)
             try {
-                categoryCreateMethod = categoryClass.getMethod("create", String.class);
-                categoryInstance = categoryCreateMethod.invoke(null, categoryTranslationKey);
-                GlowUpMod.LOGGER.debug("ReflectionShim: created category instance via create(String)");
-            } catch (NoSuchMethodException ignored) {
-                // try Identifier overload if present
-                try {
-                    Class<?> identifierClass = Class.forName("net.minecraft.util.Identifier");
+                categoryClass = Class.forName("net.minecraft.client.option.KeyBinding$Category");
+                GlowUpMod.LOGGER.debug("ReflectionShim: found category class: {}", categoryClass.getName());
+            } catch (ClassNotFoundException cnfeInner) {
+                // Try to discover an inner class of KeyBinding that looks like a Category (covers obfuscated mappings).
+                for (Class<?> inner : KeyBinding.class.getDeclaredClasses()) {
+                    // Prefer inner classes that expose a static create(...) method or contain "Category" in the name.
+                    boolean looksLikeCategory = false;
                     try {
-                        categoryCreateMethod = categoryClass.getMethod("create", identifierClass);
-                        // Try to construct an Identifier from the translation key; fall back to using the raw string if constructor not present
-                        Object identifierInstance = null;
-                        try {
-                            // Try Identifier(String)
-                            Constructor<?> idCtor = identifierClass.getConstructor(String.class);
-                            identifierInstance = idCtor.newInstance(categoryTranslationKey);
-                        } catch (NoSuchMethodException idCtorEx) {
-                            // Try static of(String, String) by splitting on a delimiter if sensible
-                            try {
-                                Method ofMethod = identifierClass.getMethod("of", String.class, String.class);
-                                String ns = "glowup";
-                                String path = categoryTranslationKey.contains(".") ? categoryTranslationKey.substring(categoryTranslationKey.lastIndexOf('.') + 1) : categoryTranslationKey;
-                                identifierInstance = ofMethod.invoke(null, ns, path);
-                            } catch (ReflectiveOperationException e) {
-                                GlowUpMod.LOGGER.debug("ReflectionShim: could not build Identifier from '{}': {}", categoryTranslationKey, e.toString());
-                            }
-                        }
-                        if (identifierInstance != null) {
-                            categoryInstance = categoryCreateMethod.invoke(null, identifierInstance);
-                            GlowUpMod.LOGGER.debug("ReflectionShim: created category instance via create(Identifier)");
-                        }
-                    } catch (NoSuchMethodException ignored2) {
-                        // no create(Identifier)
+                        inner.getMethod("create", String.class);
+                        looksLikeCategory = true;
+                    } catch (NoSuchMethodException ignored) { }
+                    if (!looksLikeCategory && inner.getSimpleName().toLowerCase().contains("category")) {
+                        looksLikeCategory = true;
                     }
-                } catch (ClassNotFoundException cnfe) {
-                    // Identifier class not present (unlikely), fall through
+                    if (looksLikeCategory) {
+                        categoryClass = inner;
+                        GlowUpMod.LOGGER.debug("ReflectionShim: found category candidate via KeyBinding inner class: {}", inner.getName());
+                        break;
+                    }
                 }
             }
-        } catch (ClassNotFoundException cnfe) {
-            // No Category inner class - possible on older mappings; will attempt other constructors below.
-            GlowUpMod.LOGGER.debug("ReflectionShim: no KeyBinding.Category inner class found");
-            categoryClass = null;
+
+            if (categoryClass != null) {
+                // Try create(String) first
+                try {
+                    categoryCreateMethod = categoryClass.getMethod("create", String.class);
+                    categoryInstance = categoryCreateMethod.invoke(null, categoryTranslationKey);
+                    GlowUpMod.LOGGER.debug("ReflectionShim: created category instance via create(String)");
+                } catch (NoSuchMethodException ignored) {
+                    // try Identifier overload if present
+                    try {
+                        Class<?> identifierClass = Class.forName("net.minecraft.util.Identifier");
+                        try {
+                            categoryCreateMethod = categoryClass.getMethod("create", identifierClass);
+                            // Try to construct an Identifier from the translation key; fall back to trying helper methods
+                            Object identifierInstance = null;
+                            try {
+                                // Try Identifier(String)
+                                Constructor<?> idCtor = identifierClass.getConstructor(String.class);
+                                identifierInstance = idCtor.newInstance(categoryTranslationKey);
+                            } catch (NoSuchMethodException idCtorEx) {
+                                // Try static of(String, String) by splitting on a delimiter if sensible
+                                try {
+                                    Method ofMethod = identifierClass.getMethod("of", String.class, String.class);
+                                    String ns = "glowup";
+                                    String path = categoryTranslationKey.contains(".") ? categoryTranslationKey.substring(categoryTranslationKey.lastIndexOf('.') + 1) : categoryTranslationKey;
+                                    identifierInstance = ofMethod.invoke(null, ns, path);
+                                } catch (ReflectiveOperationException e) {
+                                    GlowUpMod.LOGGER.debug("ReflectionShim: could not build Identifier from '{}': {}", categoryTranslationKey, e.toString());
+                                }
+                            }
+                            if (identifierInstance != null) {
+                                categoryInstance = categoryCreateMethod.invoke(null, identifierInstance);
+                                GlowUpMod.LOGGER.debug("ReflectionShim: created category instance via create(Identifier)");
+                            }
+                        } catch (NoSuchMethodException ignored2) {
+                            // no create(Identifier)
+                        }
+                    } catch (ClassNotFoundException cnfe) {
+                        // Identifier class not present (unlikely), fall through
+                    }
+                }
+            } else {
+                GlowUpMod.LOGGER.debug("ReflectionShim: no KeyBinding.Category-like inner class found");
+            }
         } catch (ReflectiveOperationException roe) {
             GlowUpMod.LOGGER.debug("ReflectionShim: error while trying to create category instance: {}", roe.toString());
             categoryInstance = null;
@@ -120,6 +141,36 @@ public final class ReflectionShim {
                     args[i] = Integer.valueOf(keyCode);
                 } else if (p.equals(InputUtil.Type.class)) {
                     args[i] = type;
+                } else if (p.isEnum()) {
+                    // Some mappings expose an enum type for key type that is not the same Class object
+                    // as net.minecraft.client.util.InputUtil$Type. Attempt to find a matching enum constant
+                    // (prefer KEYSYM) or fall back to the first constant.
+                    try {
+                        Object[] consts = p.getEnumConstants();
+                        Object enumVal = null;
+                        if (consts != null && consts.length > 0) {
+                            String preferred = InputUtil.Type.KEYSYM.name();
+                            for (Object c0 : consts) {
+                                if (((Enum<?>) c0).name().equals(preferred)) {
+                                    enumVal = c0;
+                                    break;
+                                }
+                            }
+                            if (enumVal == null) {
+                                // fallback to first enum constant
+                                enumVal = consts[0];
+                            }
+                        }
+                        if (enumVal == null) {
+                            ok = false;
+                            break;
+                        }
+                        args[i] = enumVal;
+                    } catch (Exception e) {
+                        GlowUpMod.LOGGER.debug("ReflectionShim: could not select enum constant for parameter {}: {}", p.getName(), e.toString());
+                        ok = false;
+                        break;
+                    }
                 } else if (categoryClass != null && p.equals(categoryClass)) {
                     if (categoryInstance != null) {
                         args[i] = categoryInstance;
@@ -143,14 +194,18 @@ public final class ReflectionShim {
 
             if (!ok) continue;
 
+            // Log the specific constructor attempt at INFO so it appears in launcher logs.
+            GlowUpMod.LOGGER.info("ReflectionShim: attempting constructor: {}", Arrays.toString(params));
             try {
                 ctor.setAccessible(true);
                 Object instantiated = ctor.newInstance(args);
+                GlowUpMod.LOGGER.info("ReflectionShim: constructor succeeded: {}", Arrays.toString(params));
                 GlowUpMod.LOGGER.debug("ReflectionShim: successfully constructed KeyBinding using constructor: {}", Arrays.toString(params));
                 return (KeyBinding) instantiated;
             } catch (Exception e) {
                 attempts.add(e);
-                GlowUpMod.LOGGER.debug("ReflectionShim: constructor {} failed: {}", Arrays.toString(params), e.toString());
+                GlowUpMod.LOGGER.info("ReflectionShim: constructor {} failed: {}", Arrays.toString(params), e.toString());
+                GlowUpMod.LOGGER.debug("ReflectionShim: constructor {} stack: ", Arrays.toString(params), e);
             }
         }
 
@@ -170,14 +225,17 @@ public final class ReflectionShim {
         fallbacks.add(new TrySignature(new Class<?>[]{String.class, int.class, String.class}, new Object[]{id, Integer.valueOf(keyCode), categoryTranslationKey}));
 
         for (TrySignature ts : fallbacks) {
+            GlowUpMod.LOGGER.info("ReflectionShim: trying fallback signature: {}", Arrays.toString(ts.paramTypes));
             try {
                 Constructor<?> c = KeyBinding.class.getConstructor(ts.paramTypes);
                 c.setAccessible(true);
                 Object inst = c.newInstance(ts.args);
+                GlowUpMod.LOGGER.info("ReflectionShim: fallback signature succeeded: {}", Arrays.toString(ts.paramTypes));
                 GlowUpMod.LOGGER.debug("ReflectionShim: constructed KeyBinding via fallback signature: {}", Arrays.toString(ts.paramTypes));
                 return (KeyBinding) inst;
             } catch (Exception e) {
-                GlowUpMod.LOGGER.debug("ReflectionShim: fallback {} failed: {}", Arrays.toString(ts.paramTypes), e.toString());
+                GlowUpMod.LOGGER.info("ReflectionShim: fallback {} failed: {}", Arrays.toString(ts.paramTypes), e.toString());
+                GlowUpMod.LOGGER.debug("ReflectionShim: fallback {} stack: ", Arrays.toString(ts.paramTypes), e);
                 attempts.add(e);
             }
         }
