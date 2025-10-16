@@ -1,9 +1,9 @@
 # PowerShell: build all target MC micro-versions and copy each produced jar to a per-project archive folder
 param(
-    #[string[]]$Versions = @('1.21.4','1.21.5','1.21.6','1.21.7','1.21.8'),
+    [string[]]$Versions = @('1.21','1.21.1','1.21.2','1.21.3','1.21.4','1.21.5','1.21.6','1.21.7','1.21.8'),
     #[string[]]$Versions = @('1.21','1.21.1','1.21.2','1.21.3'),
     # Added 1.21-1.21.3 and 1.21.9+ for compatibility testing
-    [string[]]$Versions = @('1.21','1.21.1','1.21.2','1.21.3','1.21.4','1.21.5','1.21.6','1.21.7','1.21.8','1.21.9','1.21.10'),
+    #[string[]]$Versions = @('1.21','1.21.1','1.21.2','1.21.3','1.21.4','1.21.5','1.21.6','1.21.7','1.21.8','1.21.9','1.21.10'),
     [string]$Dest = 'build-archive'
 )
  
