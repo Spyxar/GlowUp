@@ -43,7 +43,7 @@ public class ClothConfigScreenFactory
                 })
                 .build());
         general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("config.glowup.option.blacklistenabled"), GlowUpMod.config.blacklistEnabled)
-                .setDefaultValue(false)
+                .setDefaultValue(true)
                 .setTooltip(Text.translatable("config.glowup.description.blacklistenabled"))
                 .setSaveConsumer(newValue -> GlowUpMod.config.blacklistEnabled = newValue)
                 .build());
