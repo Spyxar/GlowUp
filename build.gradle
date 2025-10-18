@@ -19,6 +19,9 @@ if (project.hasProperty('targetProps')) {
 version = "${project.mod_version}+${project.minecraft_version}"
 group = project.maven_group
 
+// computed manifest override: defaults to "~${project.minecraft_version}"
+ext.manifest_minecraft_version = project.hasProperty('manifest_minecraft_version') ? project.manifest_minecraft_version : "~${project.minecraft_version}"
+
 base {
     archivesName = project.archives_base_name
 }
@@ -50,12 +53,14 @@ processResources {
     inputs.property "version", project.version
     inputs.property "minecraft_version", project.minecraft_version
     inputs.property "loader_version", project.loader_version
+    inputs.property "manifest_minecraft_version", project.manifest_minecraft_version
     filteringCharset "UTF-8"
 
     filesMatching("fabric.mod.json") {
         expand "version": project.version,
                 "minecraft_version": project.minecraft_version,
-                "loader_version": project.loader_version
+                "loader_version": project.loader_version,
+                "manifest_minecraft_version": project.manifest_minecraft_version
     }
 }
 

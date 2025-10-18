@@ -13,7 +13,6 @@ import net.minecraft.util.Hand;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
-import java.lang.reflect.*;
 import com.spyxar.glowup.compat.ReflectionShim;
 
 public class GlowUpMod implements ClientModInitializer
