@@ -13,16 +13,19 @@ import net.minecraft.util.Hand;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
-import com.spyxar.glowup.compat.ReflectionShim;
+import net.minecraft.util.Identifier;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 
 public class GlowUpMod implements ClientModInitializer
 {
     public static final String MOD_ID = "glowup";
-
+    
     public static final Logger LOGGER = LogManager.getLogger("GlowUp");
-
+    
     public static GlowUpConfig config = null;
-
+    
+    private static final KeyBinding.Category GLOWUP_CATEGORY = KeyBinding.Category.create(Identifier.of(MOD_ID, "main"));
+    
     @Override
     public void onInitializeClient()
     {
@@ -62,14 +65,20 @@ public class GlowUpMod implements ClientModInitializer
 
     private static net.minecraft.client.option.KeyBinding constructKeyBindingCompat(String id, net.minecraft.client.util.InputUtil.Type type, int keyCode, String categoryTranslationKey)
     {
-        return ReflectionShim.constructKeyBindingCompat(id, type, keyCode, categoryTranslationKey);
+        // Use the structured Category API introduced in newer Fabric mappings
+        return new KeyBinding(id, type, keyCode, GLOWUP_CATEGORY);
     }
-
+    
     /**
-     * Register the key binding if Fabric API's KeyBindingHelper is available.
-     * If it's not present, return the original KeyBinding so the mod remains loadable without that API.
+     * Register the key binding using KeyBindingHelper when available.
+     * If it's not present at runtime, return the original KeyBinding.
      */
     private static KeyBinding safeRegisterKeyBinding(KeyBinding kb) {
-        return ReflectionShim.safeRegisterKeyBinding(kb);
+        try {
+            return KeyBindingHelper.registerKeyBinding(kb);
+        } catch (NoClassDefFoundError | Exception e) {
+            LOGGER.debug("KeyBindingHelper not available; skipping helper registration for key binding.");
+            return kb;
+        }
     }
 }
