@@ -3,7 +3,9 @@ package com.spyxar.glowup.mixin;
 import com.spyxar.glowup.GlowUpMod;
 import com.spyxar.glowup.GlowUpUtils;
 import net.minecraft.client.render.entity.EntityRenderer;
+//? if >=1.21.9 {
 import net.minecraft.client.render.entity.state.EntityRenderState;
+//?}
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.registry.Registries;
@@ -14,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(EntityRenderer.class)
-public class EntityRendererMixin<T extends Entity, S extends EntityRenderState>
+public class EntityRendererMixin<T extends Entity>
 {
     //? if >=1.21.9 {
     @Redirect(method = "updateRenderState", at = @At(value = "FIELD", target = "Lnet/minecraft/client/render/entity/state/EntityRenderState;outlineColor:I", opcode = Opcodes.PUTFIELD))
