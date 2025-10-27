@@ -16,7 +16,8 @@ import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 @Mixin(WorldRenderer.class)
 public class WorldRendererMixin
 {
-    @ModifyArgs(method = "renderEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/OutlineVertexConsumerProvider;setColor(IIII)V"))
+    //? if <1.21.9 {
+    /*@ModifyArgs(method = "renderEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/OutlineVertexConsumerProvider;setColor(IIII)V"))
     public void glowup$modifySetColorArgs(Args args, @Local Entity entity)
     {
         if (GlowUpMod.config.isEnabled && entity instanceof ItemEntity)
@@ -30,4 +31,5 @@ public class WorldRendererMixin
             }
         }
     }
+    *///?}
 }

@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
 }
 
-version = "${project.mod_version}+${project.minecraft_version}"
+version = "${project.mod_version}+${stonecutter.current.version}"
 group = project.maven_group
 
 base {
@@ -18,13 +18,13 @@ repositories {
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    minecraft "com.mojang:minecraft:${stonecutter.current.version}"
+    mappings "net.fabricmc:yarn:${property('yarn_mappings')}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${property('fabric_version')}"
 
-    modApi "com.terraformersmc:modmenu:${project.modmenu_version}"
-    modApi("me.shedaniel.cloth:cloth-config-fabric:${project.clothconfig_version}") {
+    modApi "com.terraformersmc:modmenu:${property('modmenu_version')}"
+    modApi("me.shedaniel.cloth:cloth-config-fabric:${property('clothconfig_version')}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
 
@@ -35,15 +35,25 @@ dependencies {
 
 processResources {
     inputs.property "version", project.version
-    inputs.property "minecraft_version", project.minecraft_version
-    inputs.property "loader_version", project.loader_version
+    inputs.property "minecraft", stonecutter.current.version
     filteringCharset "UTF-8"
 
     filesMatching("fabric.mod.json") {
         expand "version": project.version,
-                "minecraft_version": project.minecraft_version,
+                "minecraft_version": stonecutter.current.version,
                 "loader_version": project.loader_version
     }
+}
+
+loom {
+    runConfigs.all {
+        ideConfigGenerated true // Run configurations are not created for subprojects by default
+        runDir "../../run" // Use a shared run folder and create separate worlds
+    }
+}
+
+stonecutter {
+    dependencies["modmenu"] = project.modmenu_version.toString()
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -56,8 +66,10 @@ java {
     // If you remove this line, sources will not be generated.
     withSourcesJar()
 
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    def java = stonecutter.eval(stonecutter.current.version, ">=1.20.5")
+            ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
+    targetCompatibility = java
+    sourceCompatibility = java
 }
 
 jar {
