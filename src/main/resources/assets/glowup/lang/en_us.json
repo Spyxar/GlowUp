@@ -17,7 +17,7 @@
   "text.glowup.enableglow": "Added %s to glow list",
   "text.glowup.disableglow": "Removed %s from glow list",
 
-  "key.categories.glowup.main": "GlowUp",
+  "key.category.glowup.main": "GlowUp",
   "key.glowup.toggle": "Toggle All Glow",
   "key.glowup.toggleglow": "Toggle Held Item Glow"
 }

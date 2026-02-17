@@ -37,8 +37,8 @@ public class GlowUpMod implements ClientModInitializer
         KeyBinding toggleKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glowup.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, MAIN_CATEGORY));
         KeyBinding toggleItemGlowKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glowup.toggleglow", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, MAIN_CATEGORY));
         //?} else {
-        /*KeyBinding toggleKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glowup.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.categories.glowup.main"));
-        KeyBinding toggleItemGlowKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glowup.toggleglow", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.categories.glowup.main"));
+        /*KeyBinding toggleKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glowup.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.category.glowup.main"));
+        KeyBinding toggleItemGlowKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.glowup.toggleglow", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.category.glowup.main"));
         *///?}
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (toggleKeyBinding.wasPressed())
