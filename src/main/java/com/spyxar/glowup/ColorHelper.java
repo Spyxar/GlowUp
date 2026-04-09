@@ -1,5 +1,6 @@
 package com.spyxar.glowup;
 
+// ToDo: Start using this
 public class ColorHelper
 {
     public static int getAlpha(int argb)
