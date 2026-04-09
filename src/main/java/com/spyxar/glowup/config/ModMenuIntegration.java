@@ -15,7 +15,7 @@ public class ModMenuIntegration implements ModMenuApi
         }
         else
         {
-            return (parent) -> null;
+            return (_) -> null;
         }
     }
 }

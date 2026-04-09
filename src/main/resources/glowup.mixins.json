@@ -4,8 +4,7 @@
   "package": "com.spyxar.glowup.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "MinecraftClientMixin",
-    "WorldRendererMixin"
+    "MinecraftClientMixin"
   ],
   "client": [
     "EntityRendererMixin"
