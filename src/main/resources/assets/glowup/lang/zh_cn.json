@@ -1,0 +1,23 @@
+{
+  "config.glowup.title": "GlowUp 配置",
+  "config.glowup.categories.general": "常规",
+  "config.glowup.option.isenabled": "启用",
+  "config.glowup.description.isenabled": "启用或禁用所有功能",
+  "config.glowup.option.glowcolor": "发光颜色",
+  "config.glowup.description.glowcolor": "设置发光颜色（RGB）",
+  "config.glowup.option.items": "物品列表",
+  "config.glowup.description.items": "将拥有轮廓的物品",
+  "config.glowup.option.togglemessageonoverlay": "在覆盖层显示切换消息",
+  "config.glowup.description.togglemessageonoverlay": "如果启用，使用切换热键时显示的文字将出现在快捷栏上方而不是聊天栏中",
+  "config.glowup.option.blacklistenabled": "启用黑名单",
+  "config.glowup.description.blacklistenabled": "如果启用此选项，除了添加到黑名单的物品外，所有物品都会发光",
+  "config.glowup.option.blacklisteditems": "黑名单物品",
+  "config.glowup.description.blacklisteditems": "将不会有轮廓的物品",
+
+  "text.glowup.enableglow": "已将 %s 添加到发光列表",
+  "text.glowup.disableglow": "已将 %s 从发光列表移除",
+
+  "key.categories.glowup.main": "GlowUp",
+  "key.glowup.toggle": "切换全部发光",
+  "key.glowup.toggleglow": "切换手持物品发光"
+}
