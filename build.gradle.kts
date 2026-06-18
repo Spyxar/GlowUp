@@ -61,6 +61,14 @@ tasks.withType<JavaCompile>().configureEach {
     options.release.set(25)
 }
 
+tasks.register<Copy>("buildAndCollect") {
+    description = "Builds the version jar into a shared folder in `build/libs/{mod version}/`"
+    group = "build"
+    from(tasks.jar.map { it.archiveFile })
+    into(rootProject.layout.buildDirectory.file("/libs/${project.property("mod_version")}"))
+}
+tasks.named("build") { dependsOn("buildAndCollect") }
+
 java {
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
     // if it is present.
