@@ -49,7 +49,7 @@ tasks.processResources {
 loom {
     runConfigs.all {
         ideConfigGenerated(true) // Run configurations are not created for subprojects by default
-        runDir = "../../run" // Use a shared run folder and create separate worlds
+        runDirectory = rootProject.file("run") // Use a shared run folder and create separate worlds
     }
 }
 
